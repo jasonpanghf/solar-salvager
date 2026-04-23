@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Solar Salvager</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Browser Arcade Prototype</p>
+        <h1>Solar Salvager</h1>
+        <p class="hero-text">
+          Drift through a burning salvage belt, auto-cut hostile drones, and stay alive
+          long enough to clear extraction.
+        </p>
+      </div>
+      <div class="legend-card">
+        <p class="legend-title">Controls</p>
+        <p><kbd>WASD</kbd> or <kbd>Arrows</kbd> to move</p>
+        <p>Hold and drag on mobile or with the mouse</p>
+        <p><kbd>Space</kbd> or the pulse button to fire a shockwave</p>
+      </div>
+    </header>
+
+    <main class="game-frame">
+      <canvas id="game" aria-label="Solar Salvager game area"></canvas>
+
+      <section class="hud" aria-live="polite">
+        <div class="stat-chip">
+          <span class="stat-label">Hull</span>
+          <strong id="hullValue">100</strong>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-label">Score</span>
+          <strong id="scoreValue">0</strong>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-label">Charge</span>
+          <strong id="chargeValue">0%</strong>
+        </div>
+        <div class="stat-chip">
+          <span class="stat-label">Time Left</span>
+          <strong id="timerValue">90.0</strong>
+        </div>
+      </section>
+
+      <section class="status-card">
+        <p class="status-title">Mission</p>
+        <p>Survive for <strong>90 seconds</strong> while the bay opens for extraction.</p>
+        <p>Scrap capsules build charge for your shockwave.</p>
+      </section>
+
+      <section class="overlay" id="overlay">
+        <div class="overlay-card">
+          <p class="overlay-kicker" id="overlayKicker">Arcade Run</p>
+          <h2 id="overlayTitle">Solar Salvager</h2>
+          <p id="overlayText">
+            Slip through the debris field, keep your hull intact, and outlast the swarm.
+          </p>
+          <button id="startButton" class="start-button" type="button">Launch Run</button>
+        </div>
+      </section>
+
+      <button id="pulseButton" class="pulse-button" type="button">Shockwave</button>
+    </main>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
