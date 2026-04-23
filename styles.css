@@ -1,0 +1,337 @@
+:root {
+  --ink: #fff6df;
+  --sand: #ffd98e;
+  --ember: #ff8f4d;
+  --teal: #67e3df;
+  --sea: #0f2438;
+  --night: #07111d;
+  --glass: rgba(8, 21, 35, 0.7);
+  --glass-strong: rgba(8, 21, 35, 0.88);
+  --border: rgba(255, 230, 173, 0.18);
+  --shadow: 0 28px 50px rgba(0, 0, 0, 0.35);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: "Trebuchet MS", "Gill Sans", Verdana, sans-serif;
+  color: var(--ink);
+  background:
+    radial-gradient(circle at top, rgba(255, 156, 76, 0.26), transparent 30%),
+    radial-gradient(circle at 20% 20%, rgba(103, 227, 223, 0.18), transparent 28%),
+    linear-gradient(160deg, #08111b 0%, #0d1b2a 54%, #152c3f 100%);
+  overflow-x: hidden;
+}
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  inset: auto;
+  border-radius: 999px;
+  filter: blur(14px);
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+body::before {
+  width: 22rem;
+  height: 22rem;
+  top: -8rem;
+  right: -4rem;
+  background: rgba(255, 147, 77, 0.17);
+}
+
+body::after {
+  width: 18rem;
+  height: 18rem;
+  bottom: -6rem;
+  left: -3rem;
+  background: rgba(88, 219, 213, 0.12);
+}
+
+.page-shell {
+  width: min(1120px, calc(100% - 2rem));
+  margin: 0 auto;
+  padding: 1.5rem 0 2rem;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 1rem;
+  align-items: start;
+  margin-bottom: 1rem;
+}
+
+.hero-copy,
+.legend-card,
+.status-card,
+.overlay-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.01));
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+}
+
+.hero-copy,
+.legend-card,
+.status-card {
+  border-radius: 24px;
+  padding: 1.1rem 1.2rem;
+}
+
+.eyebrow,
+.overlay-kicker,
+.legend-title,
+.status-title,
+.stat-label {
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+}
+
+.eyebrow,
+.overlay-kicker {
+  color: var(--sand);
+}
+
+h1,
+h2 {
+  font-family: Georgia, "Times New Roman", serif;
+  letter-spacing: 0.02em;
+  margin: 0;
+}
+
+h1 {
+  font-size: clamp(2.4rem, 6vw, 4.5rem);
+  line-height: 0.95;
+  margin-top: 0.25rem;
+}
+
+.hero-text,
+.legend-card p,
+.status-card p,
+#overlayText {
+  margin: 0.45rem 0 0;
+  color: rgba(255, 246, 223, 0.88);
+  line-height: 1.45;
+}
+
+kbd {
+  display: inline-block;
+  padding: 0.12rem 0.45rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 230, 173, 0.22);
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: inset 0 -1px 0 rgba(255, 255, 255, 0.08);
+  font-family: "Trebuchet MS", "Gill Sans", Verdana, sans-serif;
+  font-size: 0.82em;
+}
+
+.legend-card {
+  align-self: stretch;
+}
+
+.legend-title,
+.status-title {
+  color: var(--teal);
+  margin: 0;
+}
+
+.game-frame {
+  position: relative;
+  min-height: 72vh;
+  border-radius: 32px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 235, 190, 0.18);
+  box-shadow: var(--shadow);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)),
+    linear-gradient(180deg, rgba(9, 20, 31, 0.95), rgba(6, 13, 23, 0.95));
+}
+
+#game {
+  display: block;
+  width: 100%;
+  height: 72vh;
+  min-height: 520px;
+  touch-action: none;
+}
+
+.hud {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  right: 1rem;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  pointer-events: none;
+}
+
+.stat-chip {
+  padding: 0.9rem 1rem;
+  border-radius: 18px;
+  background: rgba(7, 17, 29, 0.68);
+  border: 1px solid rgba(255, 230, 173, 0.14);
+  backdrop-filter: blur(8px);
+}
+
+.stat-chip strong {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: clamp(1.05rem, 2vw, 1.3rem);
+}
+
+.status-card {
+  position: absolute;
+  left: 1rem;
+  bottom: 1rem;
+  max-width: min(360px, calc(100% - 7rem));
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: linear-gradient(180deg, rgba(3, 7, 12, 0.18), rgba(3, 7, 12, 0.55));
+  transition: opacity 180ms ease, visibility 180ms ease;
+}
+
+.overlay.is-hidden {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.overlay-card {
+  width: min(460px, 100%);
+  border-radius: 28px;
+  padding: 1.4rem;
+  text-align: center;
+  background: linear-gradient(180deg, rgba(7, 19, 32, 0.92), rgba(5, 14, 25, 0.96));
+  border: 1px solid rgba(255, 228, 173, 0.18);
+}
+
+.overlay-card h2 {
+  font-size: clamp(2.2rem, 7vw, 3.6rem);
+}
+
+.start-button,
+.pulse-button {
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  color: #08111b;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
+}
+
+.start-button:hover,
+.pulse-button:hover {
+  transform: translateY(-1px);
+}
+
+.start-button {
+  margin-top: 1rem;
+  padding: 0.9rem 1.3rem;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #ffd289, #ff9859);
+  box-shadow: 0 14px 26px rgba(255, 145, 77, 0.28);
+}
+
+.pulse-button {
+  position: absolute;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 2;
+  padding: 0.9rem 1rem;
+  min-width: 120px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #8ef4ec, #66cfe2);
+  box-shadow: 0 14px 26px rgba(91, 209, 210, 0.22);
+}
+
+.pulse-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 880px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .hud {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  #game {
+    height: 68vh;
+  }
+}
+
+@media (max-width: 640px) {
+  .page-shell {
+    width: min(100% - 1rem, 100%);
+    padding-top: 0.5rem;
+  }
+
+  .hero-copy,
+  .legend-card,
+  .status-card {
+    border-radius: 20px;
+  }
+
+  #game {
+    min-height: 420px;
+    height: 62vh;
+  }
+
+  .hud {
+    top: 0.7rem;
+    left: 0.7rem;
+    right: 0.7rem;
+    gap: 0.55rem;
+  }
+
+  .stat-chip {
+    padding: 0.7rem 0.8rem;
+  }
+
+  .status-card {
+    left: 0.7rem;
+    right: 5rem;
+    bottom: 0.7rem;
+    max-width: none;
+    padding: 0.8rem 0.9rem;
+  }
+
+  .pulse-button {
+    right: 0.7rem;
+    bottom: 0.7rem;
+    min-width: 84px;
+    padding: 0.8rem 0.7rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay,
+  .start-button,
+  .pulse-button {
+    transition: none;
+  }
+}
