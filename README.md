@@ -4,7 +4,7 @@ A small browser arcade game built with plain HTML, CSS, and JavaScript.
 
 ## Play online
 
-The game is intended to be shared as a static website once GitHub Pages is enabled for this repository.
+https://jasonpanghf.github.io/solar-salvager/
 
 ## Run locally
 
