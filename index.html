@@ -17,54 +17,100 @@
           long enough to clear extraction.
         </p>
       </div>
-      <div class="legend-card">
+
+      <div class="legend-card" aria-label="Controls">
         <p class="legend-title">Controls</p>
         <p><kbd>WASD</kbd> or <kbd>Arrows</kbd> to move</p>
-        <p>Hold and drag on mobile or with the mouse</p>
-        <p><kbd>Space</kbd> or the pulse button to fire a shockwave</p>
+        <p>Hold and drag anywhere inside the play field</p>
+        <p><kbd>Space</kbd> or the shockwave button to pulse</p>
       </div>
     </header>
 
-    <main class="game-frame">
-      <canvas id="game" aria-label="Solar Salvager game area"></canvas>
+    <main class="app-layout">
+      <section class="play-column" aria-label="Game">
+        <section class="hud-panel" aria-live="polite">
+          <div class="stat-chip">
+            <span class="stat-label">Hull</span>
+            <strong id="hullValue">100</strong>
+          </div>
+          <div class="stat-chip">
+            <span class="stat-label">Score</span>
+            <strong id="scoreValue">0</strong>
+          </div>
+          <div class="stat-chip">
+            <span class="stat-label">Charge</span>
+            <strong id="chargeValue">0%</strong>
+          </div>
+          <div class="stat-chip">
+            <span class="stat-label">Time</span>
+            <strong id="timerValue">90.0</strong>
+          </div>
+        </section>
 
-      <section class="hud" aria-live="polite">
-        <div class="stat-chip">
-          <span class="stat-label">Hull</span>
-          <strong id="hullValue">100</strong>
-        </div>
-        <div class="stat-chip">
-          <span class="stat-label">Score</span>
-          <strong id="scoreValue">0</strong>
-        </div>
-        <div class="stat-chip">
-          <span class="stat-label">Charge</span>
-          <strong id="chargeValue">0%</strong>
-        </div>
-        <div class="stat-chip">
-          <span class="stat-label">Time Left</span>
-          <strong id="timerValue">90.0</strong>
-        </div>
+        <section class="game-frame">
+          <canvas id="game" aria-label="Solar Salvager game area"></canvas>
+
+          <section class="overlay" id="overlay">
+            <div class="overlay-card">
+              <p class="overlay-kicker" id="overlayKicker">Arcade Run</p>
+              <h2 id="overlayTitle">Solar Salvager</h2>
+              <p id="overlayText">
+                Slip through the debris field, keep your hull intact, and outlast the swarm.
+              </p>
+              <p class="last-result" id="lastResultText"></p>
+              <button id="startButton" class="start-button" type="button">Launch Run</button>
+            </div>
+          </section>
+        </section>
+
+        <section class="control-panel">
+          <div class="mission-copy">
+            <p class="status-title">Mission</p>
+            <p>Survive <strong>90 seconds</strong>, collect scrap capsules, and pulse when charge hits 100%.</p>
+            <p id="challengeText" class="challenge-text"></p>
+          </div>
+          <button id="pulseButton" class="pulse-button" type="button">Shockwave</button>
+        </section>
       </section>
 
-      <section class="status-card">
-        <p class="status-title">Mission</p>
-        <p>Survive for <strong>90 seconds</strong> while the bay opens for extraction.</p>
-        <p>Scrap capsules build charge for your shockwave.</p>
-      </section>
-
-      <section class="overlay" id="overlay">
-        <div class="overlay-card">
-          <p class="overlay-kicker" id="overlayKicker">Arcade Run</p>
-          <h2 id="overlayTitle">Solar Salvager</h2>
-          <p id="overlayText">
-            Slip through the debris field, keep your hull intact, and outlast the swarm.
-          </p>
-          <button id="startButton" class="start-button" type="button">Launch Run</button>
+      <aside class="records-panel" aria-label="Run history and leaderboard">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">Pilot Log</p>
+            <h2>History</h2>
+          </div>
+          <div class="mini-stats">
+            <span><strong id="bestValue">0</strong> best</span>
+            <span><strong id="runsValue">0</strong> runs</span>
+          </div>
         </div>
-      </section>
 
-      <button id="pulseButton" class="pulse-button" type="button">Shockwave</button>
+        <label class="pilot-field" for="pilotNameInput">
+          <span>Pilot name</span>
+          <input id="pilotNameInput" type="text" maxlength="18" autocomplete="nickname" placeholder="Your name">
+        </label>
+
+        <div class="challenge-banner" id="challengeBanner" hidden></div>
+
+        <section class="record-section">
+          <h3>Leaderboard</h3>
+          <ol class="record-list" id="leaderboardList">
+            <li class="empty-record">Finish a run to claim the board.</li>
+          </ol>
+        </section>
+
+        <section class="record-section">
+          <h3>Recent Runs</h3>
+          <ul class="record-list" id="historyList">
+            <li class="empty-record">No runs recorded yet.</li>
+          </ul>
+        </section>
+
+        <div class="record-actions">
+          <button id="shareButton" class="ghost-button" type="button" disabled>Copy Challenge Link</button>
+          <button id="clearHistoryButton" class="text-button" type="button">Clear History</button>
+        </div>
+      </aside>
     </main>
   </div>
 

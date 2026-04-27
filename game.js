@@ -13,8 +13,23 @@ const overlayTitle = document.getElementById("overlayTitle");
 const overlayText = document.getElementById("overlayText");
 const startButton = document.getElementById("startButton");
 const pulseButton = document.getElementById("pulseButton");
+const lastResultText = document.getElementById("lastResultText");
+const pilotNameInput = document.getElementById("pilotNameInput");
+const bestValue = document.getElementById("bestValue");
+const runsValue = document.getElementById("runsValue");
+const leaderboardList = document.getElementById("leaderboardList");
+const historyList = document.getElementById("historyList");
+const challengeBanner = document.getElementById("challengeBanner");
+const challengeText = document.getElementById("challengeText");
+const shareButton = document.getElementById("shareButton");
+const clearHistoryButton = document.getElementById("clearHistoryButton");
 
 const GOAL_TIME = 90;
+const HISTORY_KEY = "solar-salvager-runs-v1";
+const PILOT_KEY = "solar-salvager-pilot-v1";
+const MAX_HISTORY = 20;
+const SHARE_BASE_URL = "https://jasonpanghf.github.io/solar-salvager/";
+
 const keys = new Set();
 const pointer = {
   active: false,
@@ -29,6 +44,11 @@ const view = {
 };
 
 const starfield = [];
+const records = {
+  runs: [],
+  lastRun: null,
+};
+const activeChallenge = readChallengeFromUrl();
 
 const game = {
   state: "menu",
@@ -69,6 +89,311 @@ function clamp(value, min, max) {
 
 function distance(a, b) {
   return Math.hypot(a.x - b.x, a.y - b.y);
+}
+
+function safeJsonParse(value, fallback) {
+  try {
+    return JSON.parse(value);
+  } catch (error) {
+    return fallback;
+  }
+}
+
+function toBase64Url(text) {
+  const bytes = new TextEncoder().encode(text);
+  let binary = "";
+
+  for (const byte of bytes) {
+    binary += String.fromCharCode(byte);
+  }
+
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/u, "");
+}
+
+function fromBase64Url(value) {
+  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
+  const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), "=");
+  const binary = atob(padded);
+  const bytes = Uint8Array.from(binary, (character) => character.charCodeAt(0));
+  return new TextDecoder().decode(bytes);
+}
+
+function readChallengeFromUrl() {
+  const params = new URLSearchParams(window.location.search);
+  const value = params.get("challenge");
+
+  if (!value) {
+    return null;
+  }
+
+  let payload = null;
+
+  try {
+    payload = safeJsonParse(fromBase64Url(value), null);
+  } catch (error) {
+    return null;
+  }
+  if (!payload || typeof payload !== "object") {
+    return null;
+  }
+
+  const score = Number(payload.score);
+  const survival = Number(payload.survival);
+  if (!Number.isFinite(score) || !Number.isFinite(survival)) {
+    return null;
+  }
+
+  return {
+    id: "challenge",
+    name: String(payload.name || "Friend").slice(0, 18),
+    score: Math.max(0, Math.floor(score)),
+    survival: clamp(survival, 0, GOAL_TIME),
+    victory: Boolean(payload.victory),
+    date: Number(payload.date) || Date.now(),
+    fromChallenge: true,
+  };
+}
+
+function getPilotName() {
+  const value = pilotNameInput?.value.trim();
+  return value ? value.slice(0, 18) : "Pilot";
+}
+
+function createRecordId() {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+
+  return `${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+}
+
+function loadRecords() {
+  const saved = safeJsonParse(localStorage.getItem(HISTORY_KEY) || "[]", []);
+
+  if (!Array.isArray(saved)) {
+    records.runs = [];
+    return;
+  }
+
+  records.runs = saved
+    .filter((run) => run && Number.isFinite(Number(run.score)))
+    .map((run) => ({
+      id: String(run.id || createRecordId()),
+      name: String(run.name || "Pilot").slice(0, 18),
+      score: Math.max(0, Math.floor(Number(run.score))),
+      survival: clamp(Number(run.survival) || 0, 0, GOAL_TIME),
+      victory: Boolean(run.victory),
+      hull: Math.max(0, Math.ceil(Number(run.hull) || 0)),
+      date: Number(run.date) || Date.now(),
+    }))
+    .slice(0, MAX_HISTORY);
+
+  records.lastRun = records.runs[0] || null;
+}
+
+function saveRecords() {
+  localStorage.setItem(HISTORY_KEY, JSON.stringify(records.runs.slice(0, MAX_HISTORY)));
+}
+
+function formatRunTime(seconds) {
+  return `${Math.max(0, seconds).toFixed(1)}s`;
+}
+
+function formatRunDate(timestamp) {
+  return new Intl.DateTimeFormat(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(timestamp));
+}
+
+function compareRuns(a, b) {
+  if (b.score !== a.score) {
+    return b.score - a.score;
+  }
+
+  if (Number(b.victory) !== Number(a.victory)) {
+    return Number(b.victory) - Number(a.victory);
+  }
+
+  return b.survival - a.survival;
+}
+
+function createRecordItem(run, label, rank) {
+  const item = document.createElement("li");
+  item.className = "record-item";
+
+  const main = document.createElement("span");
+  main.className = "record-main";
+
+  const title = document.createElement("span");
+  title.className = "record-title";
+  title.textContent = `${rank ? `#${rank} ` : ""}${run.name} · ${run.score} pts`;
+
+  const meta = document.createElement("span");
+  meta.className = "record-meta";
+  meta.textContent = `${formatRunTime(run.survival)} · ${run.victory ? "Extracted" : "Hull lost"} · ${formatRunDate(run.date)}`;
+
+  const badge = document.createElement("span");
+  badge.className = `record-badge${run.victory ? " survived" : ""}`;
+  badge.textContent = label;
+
+  main.append(title, meta);
+  item.append(main, badge);
+  return item;
+}
+
+function renderEmptyItem(list, text) {
+  list.replaceChildren();
+  const item = document.createElement("li");
+  item.className = "empty-record";
+  item.textContent = text;
+  list.append(item);
+}
+
+function renderRecords() {
+  const topRuns = [...records.runs];
+
+  if (activeChallenge) {
+    topRuns.push(activeChallenge);
+  }
+
+  const bestLocalRun = [...records.runs].sort(compareRuns)[0];
+  bestValue.textContent = bestLocalRun ? bestLocalRun.score.toString() : "0";
+  runsValue.textContent = records.runs.length.toString();
+  shareButton.disabled = !records.lastRun;
+
+  if (activeChallenge) {
+    challengeBanner.hidden = false;
+    challengeBanner.textContent = `${activeChallenge.name} challenged you: beat ${activeChallenge.score} pts in ${formatRunTime(activeChallenge.survival)}.`;
+    challengeText.textContent = `Friend target: ${activeChallenge.score} pts from ${activeChallenge.name}.`;
+  } else {
+    challengeBanner.hidden = true;
+    challengeText.textContent = "Share your best run as a challenge link after you play.";
+  }
+
+  leaderboardList.replaceChildren();
+  const leaderboardRuns = topRuns.sort(compareRuns).slice(0, 5);
+
+  if (leaderboardRuns.length === 0) {
+    renderEmptyItem(leaderboardList, "Finish a run to claim the board.");
+  } else {
+    leaderboardRuns.forEach((run, index) => {
+      leaderboardList.append(createRecordItem(run, run.fromChallenge ? "Friend" : "Local", index + 1));
+    });
+  }
+
+  historyList.replaceChildren();
+  const recentRuns = records.runs.slice(0, 6);
+
+  if (recentRuns.length === 0) {
+    renderEmptyItem(historyList, "No runs recorded yet.");
+  } else {
+    recentRuns.forEach((run) => {
+      historyList.append(createRecordItem(run, run.victory ? "Win" : "Run"));
+    });
+  }
+}
+
+function createChallengeUrl(run) {
+  const isLocalPage =
+    window.location.protocol === "file:" ||
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1";
+  const url = new URL(isLocalPage ? SHARE_BASE_URL : window.location.href);
+  const payload = {
+    name: run.name,
+    score: run.score,
+    survival: run.survival,
+    victory: run.victory,
+    date: run.date,
+  };
+
+  url.searchParams.set("challenge", toBase64Url(JSON.stringify(payload)));
+  return url.toString();
+}
+
+function recordRun(victory) {
+  const run = {
+    id: createRecordId(),
+    name: getPilotName(),
+    score: Math.floor(game.score),
+    survival: clamp(game.elapsed, 0, GOAL_TIME),
+    victory,
+    hull: Math.max(0, Math.ceil(player.hp)),
+    date: Date.now(),
+  };
+
+  records.runs.unshift(run);
+  records.runs = records.runs.slice(0, MAX_HISTORY);
+  records.lastRun = run;
+  saveRecords();
+  renderRecords();
+  return run;
+}
+
+function getChallengeResult(run) {
+  if (!activeChallenge) {
+    return "Run saved to your local history.";
+  }
+
+  const difference = run.score - activeChallenge.score;
+  if (difference >= 0) {
+    return `Challenge beaten: you topped ${activeChallenge.name} by ${difference} pts.`;
+  }
+
+  return `${activeChallenge.name} is still ahead by ${Math.abs(difference)} pts.`;
+}
+
+function flashShareButton(text) {
+  const original = "Copy Challenge Link";
+  shareButton.textContent = text;
+  window.setTimeout(() => {
+    shareButton.textContent = original;
+  }, 1400);
+}
+
+async function copyChallengeLink() {
+  if (!records.lastRun) {
+    return;
+  }
+
+  const url = createChallengeUrl(records.lastRun);
+  const message = `${records.lastRun.name} scored ${records.lastRun.score} in Solar Salvager. Beat this: ${url}`;
+
+  try {
+    await navigator.clipboard.writeText(message);
+    flashShareButton("Copied");
+  } catch (error) {
+    window.prompt("Copy this challenge link:", message);
+    flashShareButton("Ready");
+  }
+}
+
+function clearRunHistory() {
+  records.runs = [];
+  records.lastRun = null;
+  saveRecords();
+  renderRecords();
+  lastResultText.textContent = "";
+}
+
+function isTypingIntoField(event) {
+  return event.target instanceof HTMLInputElement || event.target instanceof HTMLTextAreaElement;
+}
+
+function initRecords() {
+  pilotNameInput.value = localStorage.getItem(PILOT_KEY) || "";
+  pilotNameInput.addEventListener("input", () => {
+    localStorage.setItem(PILOT_KEY, pilotNameInput.value.trim().slice(0, 18));
+  });
+
+  shareButton.addEventListener("click", copyChallengeLink);
+  clearHistoryButton.addEventListener("click", clearRunHistory);
+
+  loadRecords();
+  renderRecords();
 }
 
 function resizeCanvas() {
@@ -148,6 +473,7 @@ function showOverlay(kicker, title, text, buttonLabel) {
   overlayKicker.textContent = kicker;
   overlayTitle.textContent = title;
   overlayText.textContent = text;
+  lastResultText.textContent = "";
   startButton.textContent = buttonLabel;
   overlay.classList.remove("is-hidden");
 }
@@ -504,22 +830,25 @@ function endRun(victory) {
   game.state = victory ? "victory" : "gameover";
   releasePointer();
   syncUi();
+  const run = recordRun(victory);
 
   if (victory) {
     showOverlay(
       "Extraction Open",
       "Route Cleared",
-      `You made it out with ${Math.floor(game.score)} points and a mostly intact rig.`,
+      `You made it out with ${run.score} points and ${run.hull} hull remaining.`,
       "Run It Again"
     );
   } else {
     showOverlay(
       "Hull Failure",
       "Run Lost",
-      `The swarm got through. Final score: ${Math.floor(game.score)}. Jump back in for another run.`,
+      `The swarm got through after ${formatRunTime(run.survival)}. Final score: ${run.score}.`,
       "Retry Run"
     );
   }
+
+  lastResultText.textContent = getChallengeResult(run);
 }
 
 function updateParticles(dt) {
@@ -843,6 +1172,10 @@ function handlePointer(event) {
 window.addEventListener("resize", resizeCanvas);
 
 window.addEventListener("keydown", (event) => {
+  if (isTypingIntoField(event)) {
+    return;
+  }
+
   if (event.code === "Space") {
     event.preventDefault();
     if (game.state === "playing") {
@@ -887,6 +1220,7 @@ canvas.addEventListener("pointercancel", releasePointer);
 startButton.addEventListener("click", resetGame);
 pulseButton.addEventListener("click", triggerPulse);
 
+initRecords();
 resizeCanvas();
 syncUi();
 showOverlay(
